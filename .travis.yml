@@ -1,0 +1,21 @@
+sudo : required 
+services :
+    -docker
+
+before_install :
+    - docker build -t raghavheda/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+    - docker run raghavheda/react-test npm test -- --coverage
+
+after_success:
+    - docker build -t raghavheda/multi-client ./client
+    - docker build -t raghavheda/multi-nginx ./nginx
+    - docker build -t raghavheda/multi-server ./server
+    - docker build -t raghavheda/multi-worker ./worker
+
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    - docker push raghavheda/multi-client
+    - docker push raghavheda/multi-nginx
+    - docker push raghavheda/multi-server
+    - docker push raghavheda/multi-worker
